@@ -14,7 +14,7 @@ CFLAGS     := -c -O2
 FIXEDFLAGS := -132
 FREEFLAGS  :=
 
-NCI_INTEL_FLAGS := -r8 -i4 -traceback -w -fpe0 -ftz -convert big_endian -assume byterecl -check noarg_temp_created
+NCI_INTEL_FLAGS := -r8 -i4 -traceback -w -fpe0 -ftz -convert big_endian -assume byterecl -check noarg_temp_created 
 NCI_REPRO_FLAGS := -fp-model precise -fp-model source -align all
 ifeq ($(DEBUG), 1)
     NCI_DEBUG_FLAGS := -g3 -O0 -debug all -check all -no-vec -assume nobuffered_io
@@ -26,8 +26,11 @@ else
 endif
 
 MOD_SUFFIX := mod
-LD         := $(FC)
+LD          = $(FC)
+#AR          = ar
+#ARFLAGS     = -ruv
 LDFLAGS    := $(FFLAGS) -v
+#LDFLAGS    := -V
 
 CPPDEFS :=  $(CPPDEFS) -DNXGLOB=$(NXGLOB) -DNYGLOB=$(NYGLOB) \
             -DNUMIN=$(NUMIN) -DNUMAX=$(NUMAX) \
@@ -54,11 +57,15 @@ ifeq ($(IO_TYPE), netcdf)
    INCLDIR := $(INCLDIR) -I$(NETCDF_ROOT)/include
    SLIBS   := $(SLIBS) -L$(NETCDF_ROOT)/lib -lnetcdf -lnetcdff
 endif
+NETCDF := /leonardo_scratch/large/userexternal/ntilinin/ACCESS-NRI/release/linux-rhel8-x86_64/intel-2021.2.0/netcdf-c-4.7.4-e3iql33rckkknykdazbv4yu6ht5kxya4
+NETCDFF := /leonardo_scratch/large/userexternal/ntilinin/ACCESS-NRI/release/linux-rhel8-x86_64/intel-2021.2.0/netcdf-fortran-4.5.2-g6pudzj3xc5fglqwz2xkxrr27rflwto3
 
 ifeq ($(IO_TYPE), pio)
    CPPDEFS :=  $(CPPDEFS) -Dncdf -DPIO
-   INCLDIR := $(INCLDIR) -I$(NETCDF_ROOT)/include
-   SLIBS   := $(SLIBS) -L$(NETCDF_ROOT)/lib -lnetcdf -lnetcdff
+   INCLDIR := $(INCLDIR) -I$(NETCDFF)/include
+   INCLDIR += $(INCLDIR) -I$(NETCDF)/include
+   SLIBS   := $(SLIBS) -L$(NETCDFF)/lib -lnetcdff
+   SLIBS   += $(SLIBS) -L$(NETCDF)/lib -lnetcdf
    SLIBS   := $(SLIBS) -L$(SRCDIR)/ParallelIO/build/lib/ -lpiof -lpioc -Wl,-rpath=$(SRCDIR)/ParallelIO/build/lib/
 endif
 

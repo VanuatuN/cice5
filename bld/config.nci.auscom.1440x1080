@@ -7,8 +7,6 @@ set NYGLOB = `echo $RES | sed s/.\*x//`
 setenv BLCKX `expr $NXGLOB / 48`       # x-dimension of blocks ( not including )
 setenv BLCKY `expr $NYGLOB / 40`         # y-dimension of blocks (  ghost cells  )
 
-source /etc/profile.d/modules.csh
-module purge
-module load intel-compiler/2019.5.281
-module load netcdf/4.7.4p
-module load openmpi/4.0.2
+source /leonardo/prod/spack/03/install/0.19/linux-rhel8-icelake/gcc-8.5.0/environment-modules-5.2.0-rz47odw4phlhzhhbz7b65nv5s5othgmi/init/profile.csh
+module load access-om2
+#module purge

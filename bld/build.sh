@@ -52,19 +52,23 @@ setenv OASIS3_MCT yes	  # oasis3-mct version
 setenv NICELYR    4       # number of vertical layers in the ice
 setenv NSNWLYR    1       # number of vertical layers in the snow
 setenv NICECAT    5       # number of ice thickness categories
-
+setenv NETCDF /leonardo_scratch/large/userexternal/ntilinin/ACCESS-NRI/release/linux-rhel8-x86_64/intel-2021.2.0/netcdf-c-4.7.4-e3iql33rckkknykdazbv4yu6ht5kxya4
+echo $NETCDF
+setenv NETCDFF /leonardo_scratch/large/userexternal/ntilinin/ACCESS-NRI/release/linux-rhel8-x86_64/intel-2021.2.0/netcdf-fortran-4.5.2-g6pudzj3xc5fglqwz2xkxrr27rflwto3
+echo $NETCDFF
 if ( $IO_TYPE == 'pio' ) then
     # Build PIO
     mkdir -p ParallelIO/build
     cd ParallelIO/build
     setenv CC mpicc
     setenv FC mpifort
-    cmake -DWITH_PNETCDF=OFF \
+    cmake -DCMAKE_C_COMPILER=mpicc -DCMAKE_Fortran_COMPILER=mpifort \
+          -DWITH_PNETCDF=OFF \
           -DPIO_ENABLE_TIMING=OFF \
-          -DNetCDF_C_LIBRARY="${NETCDF}/lib/ompi3/libnetcdf.so" \
-          -DNetCDF_C_INCLUDE_DIR="${NETCDF}/include/" \
-          -DNetCDF_Fortran_LIBRARY="${NETCDF}/lib/ompi3/Intel/libnetcdff.so" \
-          -DNetCDF_Fortran_INCLUDE_DIR="${NETCDF}/include/Intel" \
+          -DNetCDF_C_LIBRARY="${NETCDF}/lib/libnetcdf.so" \
+          -DNetCDF_C_INCLUDE_DIR="${NETCDF}/include" \
+          -DNetCDF_Fortran_LIBRARY="${NETCDFF}/lib/libnetcdff.so" \
+          -DNetCDF_Fortran_INCLUDE_DIR="${NETCDFF}/include" \
           -DCMAKE_INSTALL_PREFIX="${SRCDIR}/ParallelIO/build" ../
     make && make install
     cd -
@@ -156,12 +160,13 @@ $SRCDIR/$IODIR
 $SRCDIR/$SHRDIR
 EOF
 
-cc -o makdep $CBLD/makdep.c || exit 2
+mpicc -o makdep $CBLD/makdep.c || exit 2
 
 make VPFILE=Filepath EXEC=$EXE \
            NXGLOB=$NXGLOB NYGLOB=$NYGLOB \
            BLCKX=$BLCKX BLCKY=$BLCKY MXBLCKS=$MXBLCKS \
       -j 8 -f  $CBLD/Makefile MACFILE=$CBLD/Macros.$platform || exit 2
+echo "OKOKOKOKOK"
 
 cd ..
 pwd
