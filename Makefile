@@ -1,4 +1,4 @@
-platform ?= nci
+platform ?= leo
 
 1deg:
 	bld/build.sh $(platform) auscom 360x300

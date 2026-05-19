@@ -1,0 +1,93 @@
+#==============================================================================
+# Makefile macros for Leonardo CINECA
+#==============================================================================
+
+INCLDIR    := -I.
+SLIBS      :=
+ULIBS      :=
+CPP        := cpp
+FC         := mpifort
+
+CPPFLAGS   := -P -traditional
+CPPDEFS    := -DLINUX -DPAROPT
+CFLAGS     := -c -O2
+FIXEDFLAGS := -132
+FREEFLAGS  :=
+
+NCI_INTEL_FLAGS := -r8 -i4 -traceback -w -fpe0 -ftz -convert big_endian -assume byterecl -check noarg_temp_created
+NCI_REPRO_FLAGS := -fp-model precise -fp-model source -align all
+ifeq ($(DEBUG), 1)
+    NCI_DEBUG_FLAGS := -g3 -O0 -debug all -check all -no-vec -assume nobuffered_io
+    FFLAGS          := $(NCI_INTEL_FLAGS) $(NCI_REPRO_FLAGS) $(NCI_DEBUG_FLAGS)
+    CPPDEFS         := $(CPPDEFS) -DDEBUG=$(DEBUG)
+else
+    NCI_OPTIM_FLAGS := -g3 -O2 -axCORE-AVX2 -debug all -check none -qopt-report=5 -qopt-report-annotate -assume buffered_io
+    FFLAGS          := $(NCI_INTEL_FLAGS) $(NCI_REPRO_FLAGS) $(NCI_OPTIM_FLAGS)
+endif
+
+MOD_SUFFIX := mod
+LD         := $(FC)
+LDFLAGS    := $(FFLAGS) -v
+
+CPPDEFS :=  $(CPPDEFS) -DNXGLOB=$(NXGLOB) -DNYGLOB=$(NYGLOB) \
+            -DNUMIN=$(NUMIN) -DNUMAX=$(NUMAX) \
+            -DTRAGE=$(TRAGE) -DTRFY=$(TRFY) -DTRLVL=$(TRLVL) \
+            -DTRPND=$(TRPND) -DNTRAERO=$(NTRAERO) -DTRBRI=$(TRBRI) \
+            -DNBGCLYR=$(NBGCLYR) -DTRBGCS=$(TRBGCS) \
+            -DNICECAT=$(NICECAT) -DNICELYR=$(NICELYR) \
+            -DNSNWLYR=$(NSNWLYR) \
+            -DBLCKX=$(BLCKX) -DBLCKY=$(BLCKY) -DMXBLCKS=$(MXBLCKS)
+
+ifeq ($(COMMDIR), mpi)
+   SLIBS   :=  $(SLIBS) -lmpi
+endif
+
+ifeq ($(DITTO), yes)
+   CPPDEFS :=  $(CPPDEFS) -DREPRODUCIBLE
+endif
+ifeq ($(BARRIERS), yes)
+   CPPDEFS :=  $(CPPDEFS) -Dgather_scatter_barrier
+endif
+
+ifeq ($(IO_TYPE), netcdf)
+   CPPDEFS :=  $(CPPDEFS) -Dncdf
+   INCLDIR := $(INCLDIR) -I$(NETCDF_C_ROOT)/include -I$(NETCDF_FORTRAN_ROOT)/include
+   SLIBS   := $(SLIBS) -L$(NETCDF_C_ROOT)/lib -lnetcdf -L$(NETCDF_FORTRAN_ROOT)/lib -lnetcdff
+endif
+
+ifeq ($(IO_TYPE), pio)
+   CPPDEFS :=  $(CPPDEFS) -Dncdf -DPIO
+   INCLDIR := $(INCLDIR) -I$(NETCDF_C_ROOT)/include -I$(NETCDF_FORTRAN_ROOT)/include
+   SLIBS   := $(SLIBS) -L$(NETCDF_C_ROOT)/lib -lnetcdf -L$(NETCDF_FORTRAN_ROOT)/lib -lnetcdff
+   SLIBS   := $(SLIBS) -L$(SRCDIR)/ParallelIO/build/lib/ -lpiof -lpioc -Wl,-rpath=$(SRCDIR)/ParallelIO/build/lib/
+endif
+
+ifeq ($(USE_ESMF), yes)
+   CPPDEFS :=  $(CPPDEFS) -Duse_esmf
+   INCLDIR :=  $(INCLDIR) -I ???
+   SLIBS   :=  $(SLIBS) -L ??? -lesmf -lcprts -lrt -ldl
+endif
+
+ifeq ($(AusCOM), yes)
+   CPPDEFS := $(CPPDEFS) -DAusCOM -Dcoupled
+   INCLDIR := $(INCLDIR) $(CPL_INCS) $(LIBAUSCOM_INCS)
+   SLIBS   := $(SLIBS) $(CPLLIBS)
+endif
+
+ifeq ($(UNIT_TESTING), yes)
+   CPPDEFS := $(CPPDEFS) -DUNIT_TESTING
+endif
+ifeq ($(ACCESS), yes)
+   CPPDEFS := $(CPPDEFS) -DACCESS
+endif
+# standalone CICE with AusCOM mods
+ifeq ($(ACCICE), yes)
+   CPPDEFS := $(CPPDEFS) -DACCICE
+endif
+# no MOM just CICE+UM
+ifeq ($(NOMOM), yes)
+   CPPDEFS := $(CPPDEFS) -DNOMOM
+endif
+ifeq ($(OASIS3_MCT), yes)
+   CPPDEFS := $(CPPDEFS) -DOASIS3_MCT
+endif

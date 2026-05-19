@@ -1,0 +1,33 @@
+
+# Recommendations:
+#   use processor_shape = slenderX1 or slenderX2 in ice_in
+#   one per processor with distribution_type='cartesian' or
+#   squarish blocks with distribution_type='rake'
+# If BLCKX (BLCKY) does not divide NXGLOB (NYGLOB) evenly, padding
+# will be used on the right (top) of the grid.
+
+setenv NTASK 1682
+setenv RES 3600x2700
+
+set NXGLOB = `echo $RES | sed s/x.\*//`
+set NYGLOB = `echo $RES | sed s/.\*x//`
+
+setenv BLCKX `expr $NXGLOB / 200`       # x-dimension of blocks ( not including )
+setenv BLCKY `expr $NYGLOB / 180`       # y-dimension of blocks (  ghost cells  )
+
+#source ~/ACCESS-NRI/spack-config/spack-enable.bash
+source /etc/profile.d/modules.csh
+module purge
+module load python 
+module load intel-oneapi-compilers/2021.2.0-p7vtyvv
+module load netcdf-c/4.7.4-d4klyvu
+module load netcdf-fortran/4.5.2-5ln2rw2
+module load openmpi/4.1.4-ga6avsd
+setenv LD_LIBRARY_PATH /leonardo/home/userexternal/ntilinin/ACCESS-NRI/release/linux-rhel8-x86_64/intel-2021.2.0/openmpi-4.1.4-ga6avsdxmjya35twagfjts7jp3yahbwt/lib/
+#unset FC
+setenv FC mpifort
+
+setenv NETCDF /leonardo/home/userexternal/ntilinin/ACCESS-NRI/release/linux-rhel8-x86_64/intel-2021.2.0/netcdf-c-4.7.4-d4klyvujjjphnqh76j26kamyunbrkb34
+setenv NETCDF_FORTRAN /leonardo/home/userexternal/ntilinin/ACCESS-NRI/release/linux-rhel8-x86_64/intel-2021.2.0/netcdf-fortran-4.5.2-5ln2rw27vpecnfidohaao4crc4x5wfo7
+setenv NETCDF_C_ROOT /leonardo/home/userexternal/ntilinin/ACCESS-NRI/release/linux-rhel8-x86_64/intel-2021.2.0/netcdf-c-4.7.4-d4klyvujjjphnqh76j26kamyunbrkb34
+setenv NETCDF_FORTRAN_ROOT /leonardo/home/userexternal/ntilinin/ACCESS-NRI/release/linux-rhel8-x86_64/intel-2021.2.0/netcdf-fortran-4.5.2-5ln2rw27vpecnfidohaao4crc4x5wfo7
